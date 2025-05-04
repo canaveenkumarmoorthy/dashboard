@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <h1 class="text-2xl font-bold mb-4 text-center">📋 Assignment Master Tracker</h1>
+  <div class="mb-4 text-center">
+    <label for="statusFilter" class="mr-2 font-semibold">Filter by Status:</label>
+    <select id="statusFilter" class="border border-gray-300 rounded px-2 py-1">
+      <option value="All">All</option>
+      <option value="Done">Done</option>
+      <option value="Ongoing">Ongoing</option>
+    </select>
+  </div>
+  <div class="overflow-x-auto">
+    <table id="taskTable" class="min-w-full bg-white border border-gray-300 rounded shadow">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="px-4 py-2 border">Task ID</th>
+          <th class="px-4 py-2 border">Type</th>
+          <th class="px-4 py-2 border">Client Name</th>
+          <th class="px-4 py-2 border">Assigned On</th>
+          <th class="px-4 py-2 border">Due Date</th>
+          <th class="px-4 py-2 border">Status</th>
+          <th class="px-4 py-2 border">Handled By</th>
+          <th class="px-4 py-2 border">Final Output</th>
+        </tr>
+      </thead>
+      <tbody id="taskBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKOqGdq2t9KnmwxJzwKfgPKO5tzyKlvNEjpfj8_gv7hcFFw37Sse113aRI5m4IOTYT833TF0dMOzh2/pub?gid=1687700932&single=true&output=csv";
+
+    async function loadCSV() {
+      try {
+        const response = await fetch(csvUrl);
+        const data = await response.text();
+        const rows = data.trim().split("\n").map(row => row.split(","));
+        const headers = rows[0];
+        const body = rows.slice(1);
+
+        const tableBody = document.getElementById("taskBody");
+        tableBody.innerHTML = "";
+
+        body.forEach(row => {
+          const tr = document.createElement("tr");
+          row.forEach(cell => {
+            const td = document.createElement("td");
+            td.className = "px-4 py-2 border text-sm";
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        });
+
+        document.getElementById("statusFilter").addEventListener("change", () => {
+          const value = document.getElementById("statusFilter").value;
+          filterByStatus(value, body);
+        });
+      } catch (err) {
+        document.getElementById("taskBody").innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">⚠️ Failed to load data. Check your CSV link or internet connection.</td></tr>`;
+      }
+    }
+
+    function filterByStatus(status, data) {
+      const tableBody = document.getElementById("taskBody");
+      tableBody.innerHTML = "";
+      data.forEach(row => {
+        if (status === "All" || row[5] === status) {
+          const tr = document.createElement("tr");
+          row.forEach(cell => {
+            const td = document.createElement("td");
+            td.className = "px-4 py-2 border text-sm";
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        }
+      });
+    }
+
+    loadCSV();
+  </script>
+</body>
+</html>
